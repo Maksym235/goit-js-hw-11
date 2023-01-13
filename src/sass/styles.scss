@@ -95,4 +95,27 @@ body {
     height: 38px;
     width: 40px;
   }
+
+  .load-more {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    color: #ffffff;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+  }
+
+  .is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
