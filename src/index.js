@@ -1,10 +1,9 @@
+import './sass/index.scss';
 import { Notify } from 'notiflix';
 import simpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-
+import { fetchAPI } from './js/fetch-server';
 const axios = require('axios').default;
-const BASE_URL = 'https://pixabay.com/api/';
-const KEY = '32809248-e617eb740123e44583fb94c77';
 let page = 1;
 let value = '';
 
@@ -21,55 +20,84 @@ refs.loadButton.addEventListener('click', loadMore);
 
 function onFormSubmit(evt) {
   evt.preventDefault();
-  refs.loadButton.classList.remove('is-hidden');
-  value = refs.form.firstElementChild.value;
-  renderAPI(value);
-}
+  value = refs.form.firstElementChild.value.trim();
+  page = 1;
+  refs.gallery.innerHTML = '';
 
-async function fetchAPI() {
-  try {
-    const url = `${BASE_URL}?key=${KEY}&page=${page}&q=${value}&image_type=photo&orientation=horizontal&safesearch=true`;
-    const response = await axios.get(url);
-    return response;
-  } catch (error) {
-    Notify.failure(`error`);
+  if (value === '') {
+    Notify.failure(
+      'The search string cannot be empty. Please specify your search query.'
+    );
+    return;
   }
-
-  // try {
-  //   const response = await axios.get(
-  //     `https://pixabay.com/api/?page=${page}&q=${value}&key=32809248-e617eb740123e44583fb94c77&image_type=photo&orientation=horizontal&safesearch=true&`
-  //   );
-  //   page += 1;
-  //   console.log(page);
-  //   const responseArr = await response.data.hits;
-  //   await markupFoo(responseArr);
-  // } catch (error) {
-  //   console.log(error);
-  // }
+  refs.loadButton.classList.remove('is-hidden');
+  renderAPI();
 }
 
-function renderAPI(value) {
-  fetchAPI(value).then(arr => markupFoo(arr.data.hits), (page += 1));
+async function renderAPI() {
+  try {
+    const card = await fetchAPI(page, value);
+    const cardArr = card.data.hits;
+    const totalHits = await card.data.totalHits;
+    if (totalHits === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    } else {
+      Notify.success(`Hooray! We found ${totalHits} images.`);
+      page += 1;
+      markupGalleryList(cardArr);
+      if (totalHits < 20) {
+        refs.loadButton.classList.add('is-hidden');
+      }
+      simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+    }
+  } catch (error) {
+    Notify.failure(`${error.message}`);
+  }
 }
 
 async function loadMore() {
   try {
-    const response = await axios.get(
-      `https://pixabay.com/api/?page=${page}&q=${value}&key=32809248-e617eb740123e44583fb94c77&image_type=photo&orientation=horizontal&safesearch=true&`
-    );
+    const options = {
+      params: {
+        key: '32809248-e617eb740123e44583fb94c77',
+        page: `${page}`,
+        q: `${value}`,
+        image_type: 'photo',
+        orientation: 'horizontal',
+        safesearch: 'true',
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    const response = await axios.get(`${BASE_URL}`, options);
     page += 1;
-    const responseArr = await response.data.hits;
-    await markupFoo(responseArr);
+    const cardArr = await response.data.hits;
+    const totalHits = await response.data.totalHits;
+    markupGalleryList(cardArr);
+    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+
+    const totalPages = Math.ceil(totalHits / 20);
+
+    if (page >= totalPages) {
+      refs.loadButton.classList.add('is-hidden');
+      Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
   } catch (error) {
-    console.log(error);
+    Notify.failure(`${error.message}`);
   }
 }
 
-function markupFoo(arr) {
+function markupGalleryList(arr) {
   const markup = arr
     .map(
       item => `<div class="photo-card">
-  <img class="photo" src="${item.webformatURL}" alt="${item.tags}" loading="lazy" width="300px" height="200px" />
+  <a href="${item.largeImageURL}"><img class="photo" src="${item.webformatURL}" alt="${item.tags}" loading="lazy" width="300px" height="200px" /></a>
   <div class="info">
     <p class="info-item">
       <b>Likes: ${item.likes}</b>
@@ -90,3 +118,12 @@ function markupFoo(arr) {
 
   refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
+
+let simpleGallery = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captions: true,
+  captionDelay: 250,
+});
+simpleGallery.on('show.simplelightbox', function (items) {
+  items.preventDefault();
+});
