@@ -1,9 +1,10 @@
-import './sass/index.scss';
+import './sass/styles.scss';
 import { Notify } from 'notiflix';
 import simpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { fetchAPI } from './js/fetch-server';
 const axios = require('axios').default;
+const BASE_URL = 'https://pixabay.com/api/';
 let page = 1;
 let value = '';
 
@@ -97,7 +98,7 @@ function markupGalleryList(arr) {
   const markup = arr
     .map(
       item => `<div class="photo-card">
-  <a href="${item.largeImageURL}"><img class="photo" src="${item.webformatURL}" alt="${item.tags}" loading="lazy" width="300px" height="200px" /></a>
+  <a href="${item.largeImageURL}"><img class="photo" src="${item.webformatURL}" alt="${item.tags}" loading="lazy" width="350px" height="200px" /></a>
   <div class="info">
     <p class="info-item">
       <b>Likes: ${item.likes}</b>
@@ -119,11 +120,11 @@ function markupGalleryList(arr) {
   refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
 
-let simpleGallery = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-  captions: true,
-  captionDelay: 250,
-});
-simpleGallery.on('show.simplelightbox', function (items) {
-  items.preventDefault();
-});
+// let simpleGallery = new SimpleLightbox('.gallery a', {
+//   captionsData: 'alt',
+//   captions: true,
+//   captionDelay: 250,
+// });
+// simpleGallery.on('show.simplelightbox', function (items) {
+//   items.preventDefault();
+// });
