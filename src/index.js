@@ -19,6 +19,8 @@ const refs = {
 refs.form.addEventListener('submit', onFormSubmit);
 refs.loadButton.addEventListener('click', loadMore);
 
+simpleLightBox = new SimpleLightbox('.gallery a');
+
 function onFormSubmit(evt) {
   evt.preventDefault();
   value = refs.form.firstElementChild.value.trim();
@@ -52,7 +54,7 @@ async function renderAPI() {
       if (totalHits < 20) {
         refs.loadButton.classList.add('is-hidden');
       }
-      simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+      simpleLightBox.refresh();
     }
   } catch (error) {
     Notify.failure(`${error.message}`);
@@ -79,11 +81,11 @@ async function loadMore() {
     const cardArr = await response.data.hits;
     const totalHits = await response.data.totalHits;
     markupGalleryList(cardArr);
-    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+    simpleLightBox.refresh();
 
     const totalPages = Math.ceil(totalHits / 20);
 
-    if (page >= totalPages) {
+    if (page === totalPages) {
       refs.loadButton.classList.add('is-hidden');
       Notify.failure(
         "We're sorry, but you've reached the end of search results."
@@ -119,12 +121,3 @@ function markupGalleryList(arr) {
 
   refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
-
-// let simpleGallery = new SimpleLightbox('.gallery a', {
-//   captionsData: 'alt',
-//   captions: true,
-//   captionDelay: 250,
-// });
-// simpleGallery.on('show.simplelightbox', function (items) {
-//   items.preventDefault();
-// });
