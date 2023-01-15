@@ -19,7 +19,7 @@ const refs = {
 refs.form.addEventListener('submit', onFormSubmit);
 refs.loadButton.addEventListener('click', loadMore);
 
-simpleLightBox = new SimpleLightbox('.gallery a');
+let simpleGallery = new simpleLightbox('.gallery a');
 
 function onFormSubmit(evt) {
   evt.preventDefault();
@@ -51,12 +51,13 @@ async function renderAPI() {
       Notify.success(`Hooray! We found ${totalHits} images.`);
       page += 1;
       markupGalleryList(cardArr);
+      simpleGallery.refresh();
       if (totalHits < 20) {
         refs.loadButton.classList.add('is-hidden');
       }
-      simpleLightBox.refresh();
     }
   } catch (error) {
+    console.log(error);
     Notify.failure(`${error.message}`);
   }
 }
@@ -81,17 +82,15 @@ async function loadMore() {
     const cardArr = await response.data.hits;
     const totalHits = await response.data.totalHits;
     markupGalleryList(cardArr);
-    simpleLightBox.refresh();
-
-    const totalPages = Math.ceil(totalHits / 20);
-
-    if (page === totalPages) {
+    simpleGallery.refresh();
+    if (refs.gallery.children.length === totalHits) {
       refs.loadButton.classList.add('is-hidden');
       Notify.failure(
         "We're sorry, but you've reached the end of search results."
       );
     }
   } catch (error) {
+    console.log(error);
     Notify.failure(`${error.message}`);
   }
 }
